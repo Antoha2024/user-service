@@ -1,0 +1,88 @@
+2026-03-04 21:24:50.516 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:24:50.525 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:25:15.004 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - No user found with email: ivan@mail.ru
+2026-03-04 21:25:22.460 [org.example.userservice.Main.main()] INFO  org.example.userservice.dao.UserDAOImpl - User saved successfully: ivan@mail.ru
+2026-03-04 21:25:39.124 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:26:03.010 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.readIntInput(ConsoleApp.java:275) ~[classes/:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:31) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:26:50.489 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:26:50.496 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:27:32.076 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.readIntInput(ConsoleApp.java:275) ~[classes/:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:31) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:28:36.868 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:28:36.879 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:28:41.865 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:28:44.516 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:73) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:29:17.089 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:29:17.095 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:29:20.104 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.readIntInput(ConsoleApp.java:275) ~[classes/:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:31) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:29:32.372 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:29:32.380 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:29:33.875 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.readIntInput(ConsoleApp.java:275) ~[classes/:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:31) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:30:51.789 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:30:51.798 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:30:58.499 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:31:19.065 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:73) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:31:28.661 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:31:28.671 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:31:32.916 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:31:48.636 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:73) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-04 21:32:03.047 [org.example.userservice.Main.main()] INFO  org.example.userservice.Main - Application starting...
+2026-03-04 21:32:03.054 [org.example.userservice.Main.main()] INFO  org.example.userservice.console.ConsoleApp - Starting User Service Console Application
+2026-03-04 21:32:07.007 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:34:42.987 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found user by id 1: ivan@mail.ru
+2026-03-04 21:34:48.514 [org.example.userservice.Main.main()] INFO  org.example.userservice.dao.UserDAOImpl - User deleted successfully: ivan@mail.ru
+2026-03-04 21:35:06.446 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - No user found with email: ivan@mail.ru
+2026-03-04 21:35:09.064 [org.example.userservice.Main.main()] INFO  org.example.userservice.dao.UserDAOImpl - User saved successfully: ivan@mail.ru
+2026-03-04 21:35:12.796 [org.example.userservice.Main.main()] DEBUG org.example.userservice.dao.UserDAOImpl - Found 1 users
+2026-03-04 21:44:25.299 [org.example.userservice.Main.main()] ERROR org.example.userservice.Main - Fatal error: No line found
+java.util.NoSuchElementException: No line found
+	at java.util.Scanner.nextLine(Scanner.java:1660) ~[?:?]
+	at org.example.userservice.console.ConsoleApp.start(ConsoleApp.java:73) ~[classes/:?]
+	at org.example.userservice.Main.main(Main.java:15) ~[classes/:?]
+	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279) ~[?:?]
+	at java.lang.Thread.run(Thread.java:1583) [?:?]

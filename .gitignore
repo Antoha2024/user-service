@@ -1,0 +1,28 @@
+# Compiled files
+target/
+*.class
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Maven
+log/
+
+# Docker
+.DS_Store
+
+# Backup files
+*.bak
+*.swp
+*~
