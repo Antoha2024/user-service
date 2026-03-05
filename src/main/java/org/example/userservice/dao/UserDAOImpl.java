@@ -15,6 +15,11 @@ import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Реализация интерфейса UserDAO с использованием Hibernate ORM.
+ * Обеспечивает все CRUD операции с базой данных через Hibernate Session.
+ * Каждый метод открывает новую сессию и управляет транзакциями.
+ */
 public class UserDAOImpl implements UserDAO {
     private static final Logger logger = LogManager.getLogger(UserDAOImpl.class);
 

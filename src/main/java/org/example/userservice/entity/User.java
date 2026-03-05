@@ -3,6 +3,11 @@ package org.example.userservice.entity;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * JPA сущность, представляющая пользователя в системе.
+ * Отображается на таблицу "users" в базе данных.
+ * Содержит конструкторы и методы getters и setters.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -28,7 +33,7 @@ public class User {
         createdAt = LocalDateTime.now();
     }
 
-    // Constructors
+    
     public User() {}
 
     public User(String name, String email, Integer age) {
@@ -37,7 +42,7 @@ public class User {
         this.age = age;
     }
 
-    // Getters and Setters
+    
     public Long getId() {
         return id;
     }

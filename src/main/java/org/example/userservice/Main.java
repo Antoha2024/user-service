@@ -7,8 +7,13 @@ import org.apache.logging.log4j.Logger;
 public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
+    /**
+     * Главный класс приложения User Service.
+     * Отвечает за инициализацию и запуск консольного приложения.
+     * Перехватывает и логирует исключения в случае ошибок.
+     */
     public static void main(String[] args) {
-        logger.info("Application starting...");
+        logger.info("Application starting!");
 
         try {
             ConsoleApp app = new ConsoleApp();
@@ -17,7 +22,7 @@ public class Main {
             logger.error("Fatal error: {}", e.getMessage(), e);
             System.err.println("Критическая ошибка: " + e.getMessage());
         } finally {
-            logger.info("Application finished");
+            logger.info("Application finished.");
         }
     }
 }
