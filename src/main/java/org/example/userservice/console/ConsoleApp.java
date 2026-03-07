@@ -2,6 +2,7 @@ package org.example.userservice.console;
 
 import org.example.userservice.dao.UserDAO;
 import org.example.userservice.dao.UserDAOImpl;
+import org.example.userservice.dto.UserDTO;
 import org.example.userservice.entity.User;
 import org.example.userservice.util.HibernateUtil;
 import org.apache.logging.log4j.LogManager;
@@ -24,22 +25,11 @@ public class ConsoleApp {
     private final UserDAO userDAO;
     private final Scanner scanner;
 
-    /**
-     * Конструктор приложения.
-     * Инициализирует DAO слой для работы с базой данных
-     * и создает Scanner для чтения пользовательского ввода.
-     */
     public ConsoleApp() {
         this.userDAO = new UserDAOImpl();
         this.scanner = new Scanner(System.in);
     }
 
-    /**
-     * Запускает главный цикл приложения.
-     * Отображает меню, обрабатывает выбор пользователя
-     * и управляет жизненным циклом приложения.
-     * При завершении корректно закрывает ресурсы.
-     */
     public void start() {
         logger.info("Starting User Service Console Application");
         printWelcomeMessage();
@@ -87,7 +77,7 @@ public class ConsoleApp {
                 System.out.println("Произошла ошибка: " + e.getMessage());
             }
 
-            if (running) {
+            if (running && choice != 0) {
                 System.out.println("\nНажмите Enter для продолжения...");
                 scanner.nextLine();
             }
@@ -97,19 +87,12 @@ public class ConsoleApp {
         HibernateUtil.shutdown();
     }
 
-    /**
-     * Выводит приветственное сообщение при запуске приложения.
-     * Создает визуальное отделение для улучшения читаемости.
-     */
     private void printWelcomeMessage() {
         System.out.println("=================================");
         System.out.println("  User Service Console Application");
         System.out.println("=================================");
     }
-    /**
-     * Отображает главное меню с доступными опциями.
-     * Форматирует вывод для удобства восприятия.
-     */
+
     private void printMenu() {
         System.out.println("\n--- Меню ---");
         System.out.println("1. Создать нового пользователя");
@@ -123,18 +106,12 @@ public class ConsoleApp {
         System.out.println("0. Выход");
     }
 
-    /**
-     * Создает нового пользователя.
-     * Запрашивает имя, email и возраст, проверяет уникальность email,
-     * сохраняет пользователя в базу данных и выводит результат.
-     */
     private void createUser() {
         System.out.println("\n--- Создание нового пользователя ---");
 
         String name = readStringInput("Введите имя: ");
         String email = readStringInput("Введите email: ");
 
-        
         if (userDAO.existsByEmail(email)) {
             System.out.println("Пользователь с таким email уже существует!");
             return;
@@ -144,21 +121,21 @@ public class ConsoleApp {
 
         User user = new User(name, email, age);
         userDAO.save(user);
-
-        System.out.println("Пользователь успешно создан!");
-        System.out.println(user);
+        
+        /** 
+         * Показываем созданного пользователя через DTO
+         */ 
+        userDAO.findDTOByEmail(email).ifPresent(dto -> {
+            System.out.println("Пользователь успешно создан!");
+            System.out.println(dto);
+        });
     }
 
-    /**
-     * Поиск пользователя по идентификатору.
-     * Запрашивает ID, выполняет поиск через DAO слой
-     * и отображает найденного пользователя или сообщение об ошибке.
-     */
     private void findUserById() {
         System.out.println("\n--- Поиск пользователя по ID ---");
         Long id = readLongInput("Введите ID пользователя: ");
 
-        Optional<User> userOpt = userDAO.findById(id);
+        Optional<UserDTO> userOpt = userDAO.findDTOById(id);
         if (userOpt.isPresent()) {
             System.out.println("Найден пользователь:");
             System.out.println(userOpt.get());
@@ -167,15 +144,11 @@ public class ConsoleApp {
         }
     }
 
-    /**
-     * Поиск пользователя по электронной почте.
-     * Использует точное совпадение email для поиска.
-     */
     private void findUserByEmail() {
         System.out.println("\n--- Поиск пользователя по email ---");
         String email = readStringInput("Введите email: ");
 
-        Optional<User> userOpt = userDAO.findByEmail(email);
+        Optional<UserDTO> userOpt = userDAO.findDTOByEmail(email);
         if (userOpt.isPresent()) {
             System.out.println("Найден пользователь:");
             System.out.println(userOpt.get());
@@ -184,13 +157,9 @@ public class ConsoleApp {
         }
     }
 
-    /**
-     * Отображает всех пользователей в системе.
-     * Выводит список с нумерацией или сообщение об отсутствии данных.
-     */
     private void findAllUsers() {
         System.out.println("\n--- Все пользователи ---");
-        List<User> users = userDAO.findAll();
+        List<UserDTO> users = userDAO.findAllDTO();
 
         if (users.isEmpty()) {
             System.out.println("Пользователи не найдены.");
@@ -202,15 +171,11 @@ public class ConsoleApp {
         }
     }
 
-    /**
-     * Поиск пользователей по имени (частичное совпадение).
-     * Позволяет найти всех пользователей, чье имя содержит указанную строку.
-     */
     private void findUsersByName() {
         System.out.println("\n--- Поиск пользователей по имени ---");
         String name = readStringInput("Введите имя (или часть имени): ");
 
-        List<User> users = userDAO.findByName(name);
+        List<UserDTO> users = userDAO.findDTOByName(name);
 
         if (users.isEmpty()) {
             System.out.println("Пользователи с именем '" + name + "' не найдены.");
@@ -222,11 +187,6 @@ public class ConsoleApp {
         }
     }
 
-    /**
-     * Обновляет данные существующего пользователя.
-     * Позволяет изменить имя, email и возраст с проверкой уникальности email.
-     * Пустые значения сохраняют текущие данные.
-     */
     private void updateUser() {
         System.out.println("\n--- Обновление данных пользователя ---");
         Long id = readLongInput("Введите ID пользователя для обновления: ");
@@ -238,7 +198,12 @@ public class ConsoleApp {
         }
 
         User user = userOpt.get();
-        System.out.println("Текущие данные: " + user);
+        /**
+         * Показываем текущие данные через DTO
+         */ 
+        userDAO.findDTOById(id).ifPresent(dto -> {
+            System.out.println("Текущие данные: " + dto);
+        });
 
         System.out.println("Введите новые данные (оставьте пустым для сохранения текущего значения):");
 
@@ -249,7 +214,6 @@ public class ConsoleApp {
 
         String email = readStringInputWithDefault("Новый email", user.getEmail());
         if (!email.isEmpty() && !email.equals(user.getEmail())) {
-            // Check if new email is already taken
             if (userDAO.existsByEmail(email)) {
                 System.out.println("Email " + email + " уже используется другим пользователем!");
             } else {
@@ -268,12 +232,14 @@ public class ConsoleApp {
 
         userDAO.update(user);
         System.out.println("Данные пользователя обновлены!");
+        /**
+         * Показываем обновленные данные через DTO
+         */ 
+        userDAO.findDTOById(id).ifPresent(dto -> {
+            System.out.println("Новые данные: " + dto);
+        });
     }
 
-    /**
-     * Удаляет пользователя из системы.
-     * Требует подтверждения операции для предотвращения случайного удаления.
-     */
     private void deleteUser() {
         System.out.println("\n--- Удаление пользователя ---");
         Long id = readLongInput("Введите ID пользователя для удаления: ");
@@ -285,8 +251,13 @@ public class ConsoleApp {
         }
 
         User user = userOpt.get();
-        System.out.println("Вы собираетесь удалить пользователя:");
-        System.out.println(user);
+        /** 
+         * Показываем данные пользователя через DTO перед удалением
+         */ 
+        userDAO.findDTOById(id).ifPresent(dto -> {
+            System.out.println("Вы собираетесь удалить пользователя:");
+            System.out.println(dto);
+        });
 
         String confirm = readStringInput("Подтвердите удаление (yes/no): ");
         if (confirm.equalsIgnoreCase("yes") || confirm.equalsIgnoreCase("y")) {
@@ -297,30 +268,25 @@ public class ConsoleApp {
         }
     }
 
-    /**
-     * Отображает статистику по пользователям.
-     * Показывает общее количество пользователей и средний возраст
-     * (если есть пользователи с указанным возрастом).
-     */
     private void showStatistics() {
         System.out.println("\n--- Статистика ---");
         long totalUsers = userDAO.count();
         System.out.println("Всего пользователей в системе: " + totalUsers);
 
-        List<User> users = userDAO.findAll();
+        List<UserDTO> users = userDAO.findAllDTO();
         if (!users.isEmpty()) {
             double avgAge = users.stream()
                     .filter(u -> u.getAge() != null)
-                    .mapToInt(User::getAge)
+                    .mapToInt(UserDTO::getAge)
                     .average()
                     .orElse(0);
             System.out.printf("Средний возраст: %.1f%n", avgAge);
         }
     }
     
-    /**
-     * Вспомогательные методы ввода (Helper methods)
-     */
+    /** 
+     * Вспомогательные методы ввода
+     */ 
     private String readStringInput(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine().trim();

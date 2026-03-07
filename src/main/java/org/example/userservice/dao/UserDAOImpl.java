@@ -1,5 +1,6 @@
 package org.example.userservice.dao;
 
+import org.example.userservice.dto.UserDTO;
 import org.example.userservice.entity.User;
 import org.example.userservice.util.HibernateUtil;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,9 @@ import java.util.Optional;
 public class UserDAOImpl implements UserDAO {
     private static final Logger logger = LogManager.getLogger(UserDAOImpl.class);
 
+    /** 
+     * Методы CRUD
+     */ 
     @Override
     public User save(User user) {
         Transaction transaction = null;
@@ -157,6 +161,72 @@ public class UserDAOImpl implements UserDAO {
         } catch (Exception e) {
             logger.error("Failed to count users: {}", e.getMessage());
             return 0;
+        }
+    }
+
+    /**
+     * Новые методы DTO через интерфейс EntityManager (hibernate.Session)
+     */  
+    @Override
+    public List<UserDTO> findAllDTO() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<UserDTO> users = session.createQuery(
+                "SELECT new org.example.userservice.dto.UserDTO(u.name, u.email, u.age) FROM User u", 
+                UserDTO.class)
+                .getResultList();
+            logger.debug("Found {} users via DTO projection", users.size());
+            return users;
+        } catch (Exception e) {
+            logger.error("Failed to find all users via DTO: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    @Override
+    public Optional<UserDTO> findDTOById(Long id) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            UserDTO user = session.createQuery(
+                "SELECT new org.example.userservice.dto.UserDTO(u.name, u.email, u.age) FROM User u WHERE u.id = :id", 
+                UserDTO.class)
+                .setParameter("id", id)
+                .uniqueResultOptional()
+                .orElse(null);
+            return Optional.ofNullable(user);
+        } catch (Exception e) {
+            logger.error("Failed to find user DTO by id {}: {}", id, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<UserDTO> findDTOByEmail(String email) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            UserDTO user = session.createQuery(
+                "SELECT new org.example.userservice.dto.UserDTO(u.name, u.email, u.age) FROM User u WHERE u.email = :email", 
+                UserDTO.class)
+                .setParameter("email", email)
+                .uniqueResultOptional()
+                .orElse(null);
+            return Optional.ofNullable(user);
+        } catch (Exception e) {
+            logger.error("Failed to find user DTO by email {}: {}", email, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<UserDTO> findDTOByName(String name) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<UserDTO> users = session.createQuery(
+                "SELECT new org.example.userservice.dto.UserDTO(u.name, u.email, u.age) FROM User u WHERE u.name LIKE :name", 
+                UserDTO.class)
+                .setParameter("name", "%" + name + "%")
+                .getResultList();
+            logger.debug("Found {} users DTO with name containing '{}'", users.size(), name);
+            return users;
+        } catch (Exception e) {
+            logger.error("Failed to find users DTO by name {}: {}", name, e.getMessage());
+            return List.of();
         }
     }
 }
