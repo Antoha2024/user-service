@@ -13,6 +13,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Модульные тесты для UserDAO.
  * Проверяют корректность работы всех CRUD операций с базой данных.
  * Использует реальную тестовую базу данных.
+ * 
+ * ВНИМАНИЕ: Это ИНТЕГРАЦИОННЫЙ тест, так как работает с реальной БД через Hibernate.
+ * Для изоляции рекомендуется использовать Testcontainers.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTest {
@@ -28,15 +31,21 @@ public class UserDAOTest {
         userDAO = new UserDAOImpl();
         testUser = new User("Test User", "test@example.com", 25);
     }
+
     /**
      * Очистка после всех тестов.
-     * Удаляет тестовые данные и закрывает SessionFactory.
+     * Удаляет тестовые данные.
+     * Примечание: SessionFactory не закрывается здесь,
+     * так как используется другими тестовыми классами.
+     * HibernateUtil.shutdown() вызывается в конце всех тестов.
      */
     @AfterAll
     static void tearDown() {
         userDAO.findByEmail("test@example.com").ifPresent(user -> userDAO.delete(user));
-        HibernateUtil.shutdown();
+        // SessionFactory не закрываем - пусть живет до конца всех тестов
+        // HibernateUtil.shutdown() будет вызван в конце всей тестовой сессии
     }
+
     /**
      * Тест сохранения нового пользователя.
      * Проверяет, что ID генерируется автоматически.
@@ -48,6 +57,7 @@ public class UserDAOTest {
         assertNotNull(saved.getId());
         testUser.setId(saved.getId());
     }
+
     /**
      * Тест поиска пользователя по ID.
      * Проверяет, что найденный пользователь соответствует сохраненному.
@@ -59,6 +69,7 @@ public class UserDAOTest {
         assertTrue(found.isPresent());
         assertEquals(testUser.getEmail(), found.get().getEmail());
     }
+
     /**
      * Тест поиска пользователя по email.
      * Проверяет уникальность email и корректность поиска.
@@ -70,6 +81,7 @@ public class UserDAOTest {
         assertTrue(found.isPresent());
         assertEquals(testUser.getId(), found.get().getId());
     }
+
     /**
      * Тест получения всех пользователей.
      * Проверяет, что список не пустой (содержит тестового пользователя).
@@ -80,6 +92,7 @@ public class UserDAOTest {
         List<User> users = userDAO.findAll();
         assertFalse(users.isEmpty());
     }
+
     /**
      * Тест обновления данных пользователя.
      * Проверяет, что изменения сохраняются в базе данных.
@@ -94,6 +107,7 @@ public class UserDAOTest {
         assertTrue(found.isPresent());
         assertEquals("Updated Name", found.get().getName());
     }
+
     /**
      * Тест проверки существования пользователя по email.
      * Проверяет, что метод корректно определяет наличие пользователя.
@@ -104,6 +118,7 @@ public class UserDAOTest {
         boolean exists = userDAO.existsByEmail(testUser.getEmail());
         assertTrue(exists);
     }
+
     /**
      * Тест удаления пользователя.
      * Проверяет, что после удаления пользователь больше не находится в БД.

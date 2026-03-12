@@ -4,11 +4,11 @@
         "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <!-- Database connection settings -->
+        <!-- Database connection settings - ИСПРАВЛЕНО -->
         <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
-        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/user_service</property>
-        <property name="hibernate.connection.username">user_service</property>
-        <property name="hibernate.connection.password">password</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/userdb</property>
+        <property name="hibernate.connection.username">postgres</property>
+        <property name="hibernate.connection.password">postgres</property>
 
         <!-- Hibernate properties -->
         <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>

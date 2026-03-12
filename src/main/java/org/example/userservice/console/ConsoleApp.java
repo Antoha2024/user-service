@@ -117,7 +117,7 @@ public class ConsoleApp {
             return;
         }
 
-        Integer age = readIntInput("Введите возраст: ");
+        int age = readIntInput("Введите возраст: ");
 
         User user = new User(name, email, age);
         userDAO.save(user);
@@ -276,7 +276,6 @@ public class ConsoleApp {
         List<UserDTO> users = userDAO.findAllDTO();
         if (!users.isEmpty()) {
             double avgAge = users.stream()
-                    .filter(u -> u.getAge() != null)
                     .mapToInt(UserDTO::getAge)
                     .average()
                     .orElse(0);
