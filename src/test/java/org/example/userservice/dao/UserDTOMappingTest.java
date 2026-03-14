@@ -2,53 +2,45 @@ package org.example.userservice.dao;
 
 import org.example.userservice.dto.UserDTO;
 import org.example.userservice.entity.User;
-import org.example.userservice.util.HibernateUtil;
+import org.example.userservice.test.AbstractDatabaseTest;
 import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Testcontainers
-public class UserDTOMappingTest {
+public class UserDTOMappingTest extends AbstractDatabaseTest {
+
     private static UserDAO userDAO;
-
-    private static final DockerImageName POSTGRES_IMAGE = DockerImageName
-            .parse("postgres:15-alpine")
-            .asCompatibleSubstituteFor("postgres");
-
-    // ВОТ ЭТА АННОТАЦИЯ БЫЛА ПРОПУЩЕНА!
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
 
     @BeforeAll
     static void setUp() {
-        System.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
-        System.setProperty("hibernate.connection.username", postgres.getUsername());
-        System.setProperty("hibernate.connection.password", postgres.getPassword());
-        System.setProperty("hibernate.hbm2ddl.auto", "create-drop");
-
         userDAO = new UserDAOImpl();
     }
 
     @BeforeEach
     void cleanAndSetup() {
-        HibernateUtil.doInTransaction(session -> {
-            session.createQuery("DELETE FROM User").executeUpdate();
-        });
+        clearTables();  // Очищаем таблицу перед каждым тестом
     }
 
-    @AfterAll
-    static void tearDown() {
-        // Testcontainers автоматически остановит контейнер
+    private UserDTO convertToDto(User user) {
+        if (user == null) return null;
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setAge(user.getAge());
+        return dto;
+    }
+
+    private boolean hasField(Class<?> clazz, String fieldName) {
+        try {
+            clazz.getDeclaredField(fieldName);
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
     }
 
     @Test
@@ -56,12 +48,8 @@ public class UserDTOMappingTest {
     void testUserDtoDoesNotContainTechnicalFields() {
         User user = new User("DTO Technical Fields Test", "dto.technical@example.com", 30);
         User savedUser = userDAO.save(user);
-        assertNotNull(savedUser.getId());
 
-        Optional<User> found = userDAO.findById(savedUser.getId());
-        assertTrue(found.isPresent());
-
-        UserDTO dto = convertToDto(found.get());
+        UserDTO dto = convertToDto(savedUser);
 
         assertAll("Бизнес-поля должны маппиться корректно",
                 () -> assertEquals("DTO Technical Fields Test", dto.getName()),
@@ -102,33 +90,11 @@ public class UserDTOMappingTest {
         savedUser.setAge(29);
         userDAO.update(savedUser);
 
-        Optional<User> found = userDAO.findById(savedUser.getId());
-        assertTrue(found.isPresent());
-
-        UserDTO dto = convertToDto(found.get());
+        UserDTO dto = convertToDto(savedUser);
 
         assertEquals("Updated DTO Name", dto.getName());
         assertEquals("dto.update@example.com", dto.getEmail());
         assertEquals(29, dto.getAge());
         assertNotNull(dto.getId());
-    }
-
-    private UserDTO convertToDto(User user) {
-        if (user == null) return null;
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setEmail(user.getEmail());
-        dto.setAge(user.getAge());
-        return dto;
-    }
-
-    private boolean hasField(Class<?> clazz, String fieldName) {
-        try {
-            clazz.getDeclaredField(fieldName);
-            return true;
-        } catch (NoSuchFieldException e) {
-            return false;
-        }
     }
 }
