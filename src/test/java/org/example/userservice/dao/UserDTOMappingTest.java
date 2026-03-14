@@ -4,103 +4,102 @@ import org.example.userservice.dto.UserDTO;
 import org.example.userservice.entity.User;
 import org.example.userservice.util.HibernateUtil;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Тесты для проверки маппинга между Entity и DTO через DAO слой.
- * Фокус на том, что технические поля (createdAt, updatedAt) не должны быть видны в DTO.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 public class UserDTOMappingTest {
     private static UserDAO userDAO;
-    private static User savedUser;
+
+    static {
+        System.setProperty("testcontainers.ryuk.disabled", "true");
+        System.setProperty("testcontainers.dockerclient.strategy", "http");
+        System.setProperty("docker.host", "tcp://localhost:2375");
+        System.setProperty("testcontainers.http.connectTimeout", "120000");
+        System.setProperty("testcontainers.http.readTimeout", "120000");
+        System.setProperty("org.testcontainers", "DEBUG");
+    }
+
+    private static final DockerImageName POSTGRES_IMAGE = DockerImageName
+            .parse("postgres:15-alpine")
+            .asCompatibleSubstituteFor("postgres");
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
 
     @BeforeAll
     static void setUp() {
+        System.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
+        System.setProperty("hibernate.connection.username", postgres.getUsername());
+        System.setProperty("hibernate.connection.password", postgres.getPassword());
+        System.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+
         userDAO = new UserDAOImpl();
     }
 
     @BeforeEach
     void cleanAndSetup() {
-
-        try {
-            userDAO.findByEmail("dto.test@example.com").ifPresent(user -> userDAO.delete(user));
-            userDAO.findByEmail("noid@example.com").ifPresent(user -> userDAO.delete(user));
-            userDAO.findByEmail("update@example.com").ifPresent(user -> userDAO.delete(user));
-        } catch (Exception e) {
-
-        }
+        HibernateUtil.doInTransaction(session -> {
+            session.createQuery("DELETE FROM User").executeUpdate();
+        });
     }
 
-    @AfterAll
-    static void tearDown() {
-
-    }
-
-    /**
-     * Тест сохранения и получения пользователя через DTO.
-     * Проверяет, что технические поля (кроме ID) не просачиваются в DTO.
-     */
     @Test
     @Order(1)
     void testUserDtoDoesNotContainTechnicalFields() {
-
         User user = new User("DTO Test User", "dto.test@example.com", 30);
-        savedUser = userDAO.save(user);
-        assertNotNull(savedUser.getId(), "Пользователь должен сохраниться с ID");
+        User savedUser = userDAO.save(user);
+        assertNotNull(savedUser.getId());
 
         Optional<User> found = userDAO.findById(savedUser.getId());
-        assertTrue(found.isPresent(), "Пользователь должен находиться по ID");
+        assertTrue(found.isPresent());
 
         UserDTO dto = convertToDto(found.get());
 
         assertAll("Бизнес-поля должны маппиться корректно",
-            () -> assertEquals("DTO Test User", dto.getName()),
-            () -> assertEquals("dto.test@example.com", dto.getEmail()),
-            () -> assertEquals(30, dto.getAge())
+                () -> assertEquals("DTO Test User", dto.getName()),
+                () -> assertEquals("dto.test@example.com", dto.getEmail()),
+                () -> assertEquals(30, dto.getAge())
         );
 
-        assertNotNull(dto.getId(), "DTO должно содержать ID");
+        assertNotNull(dto.getId());
 
         assertAll("Технические поля не должны быть в DTO",
-            () -> assertFalse(hasField(UserDTO.class, "createdAt"), "DTO не должно содержать поле createdAt"),
-            () -> assertFalse(hasField(UserDTO.class, "updatedAt"), "DTO не должно содержать поле updatedAt"),
-            () -> assertFalse(hasField(UserDTO.class, "version"), "DTO не должно содержать поле version")
+                () -> assertFalse(hasField(UserDTO.class, "createdAt")),
+                () -> assertFalse(hasField(UserDTO.class, "updatedAt")),
+                () -> assertFalse(hasField(UserDTO.class, "version"))
         );
     }
 
-    /**
-     * Тест проверки, что ID генерируется БД.
-     */
     @Test
     @Order(2)
     void testIdIsGeneratedByDatabase() {
-
         User user = new User("No ID User", "noid@example.com", 25);
         User saved = userDAO.save(user);
 
-        assertNotNull(saved.getId(), "ID должен быть сгенерирован БД");
-        assertTrue(saved.getId() > 0, "ID должен быть положительным числом");
+        assertNotNull(saved.getId());
+        assertTrue(saved.getId() > 0);
 
         UserDTO dto = convertToDto(saved);
-        assertNotNull(dto.getId(), "DTO должно содержать ID");
-        assertEquals(saved.getId(), dto.getId(), "ID в DTO должен совпадать с ID в Entity");
-
-        userDAO.delete(saved);
+        assertNotNull(dto.getId());
+        assertEquals(saved.getId(), dto.getId());
     }
 
-    /**
-     * Тест обновления пользователя и проверка через DTO.
-     */
     @Test
     @Order(3)
     void testUpdateUserAndCheckDto() {
-
         User user = new User("Update Test", "update@example.com", 28);
-        savedUser = userDAO.save(user);
+        User savedUser = userDAO.save(user);
 
         savedUser.setName("Updated Name");
         savedUser.setAge(29);
@@ -114,16 +113,11 @@ public class UserDTOMappingTest {
         assertEquals("Updated Name", dto.getName());
         assertEquals("update@example.com", dto.getEmail());
         assertEquals(29, dto.getAge());
-
-        assertNotNull(dto.getId(), "DTO должно содержать ID");
+        assertNotNull(dto.getId());
     }
 
-    /**
-     * Вспомогательный метод для конвертации User в UserDTO.
-     */
     private UserDTO convertToDto(User user) {
         if (user == null) return null;
-        
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
@@ -132,9 +126,6 @@ public class UserDTOMappingTest {
         return dto;
     }
 
-    /**
-     * Вспомогательный метод для проверки наличия поля в классе.
-     */
     private boolean hasField(Class<?> clazz, String fieldName) {
         try {
             clazz.getDeclaredField(fieldName);

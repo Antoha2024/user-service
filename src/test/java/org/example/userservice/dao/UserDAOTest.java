@@ -3,6 +3,10 @@ package org.example.userservice.dao;
 import org.example.userservice.entity.User;
 import org.example.userservice.util.HibernateUtil;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,45 +15,71 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Модульные тесты для UserDAO.
- * Проверяют корректность работы всех CRUD операций с базой данных.
- * Использует реальную тестовую базу данных.
- * 
- * ВНИМАНИЕ: Это ИНТЕГРАЦИОННЫЙ тест, так как работает с реальной БД через Hibernate.
- * Для изоляции рекомендуется использовать Testcontainers.
+ * Использует Testcontainers для автоматического управления тестовой БД.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 public class UserDAOTest {
     private static UserDAO userDAO;
     private static User testUser;
 
-    /**
-     * Инициализация перед всеми тестами.
-     * Создает DAO объект и тестового пользователя.
-     */
+    // ФИНАЛЬНЫЕ НАСТРОЙКИ ДЛЯ WINDOWS
+    static {
+        // Отключаем Ryuk
+        System.setProperty("testcontainers.ryuk.disabled", "true");
+
+        // Явно указываем использовать HTTP стратегию
+        System.setProperty("testcontainers.dockerclient.strategy", "http");
+
+        // Указываем хост Docker
+        System.setProperty("docker.host", "tcp://localhost:2375");
+
+        // Добавляем таймауты
+        System.setProperty("testcontainers.http.connectTimeout", "120000");
+        System.setProperty("testcontainers.http.readTimeout", "120000");
+
+        // Включаем подробное логирование
+        System.setProperty("org.testcontainers", "DEBUG");
+
+        System.out.println("=== Testcontainers Windows Configuration ===");
+        System.out.println("DOCKER_HOST: " + System.getProperty("docker.host"));
+        System.out.println("Strategy: " + System.getProperty("testcontainers.dockerclient.strategy"));
+        System.out.println("=============================================");
+    }
+
+    private static final DockerImageName POSTGRES_IMAGE = DockerImageName
+            .parse("postgres:15-alpine")
+            .asCompatibleSubstituteFor("postgres");
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+
     @BeforeAll
     static void setUp() {
+        System.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
+        System.setProperty("hibernate.connection.username", postgres.getUsername());
+        System.setProperty("hibernate.connection.password", postgres.getPassword());
+        System.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+
         userDAO = new UserDAOImpl();
         testUser = new User("Test User", "test@example.com", 25);
     }
 
-    /**
-     * Очистка после всех тестов.
-     * Удаляет тестовые данные.
-     * Примечание: SessionFactory не закрывается здесь,
-     * так как используется другими тестовыми классами.
-     * HibernateUtil.shutdown() вызывается в конце всех тестов.
-     */
-    @AfterAll
-    static void tearDown() {
-        userDAO.findByEmail("test@example.com").ifPresent(user -> userDAO.delete(user));
-        // SessionFactory не закрываем - пусть живет до конца всех тестов
-        // HibernateUtil.shutdown() будет вызван в конце всей тестовой сессии
+    @BeforeEach
+    void cleanBeforeTest() {
+        HibernateUtil.doInTransaction(session -> {
+            session.createQuery("DELETE FROM User").executeUpdate();
+        });
     }
 
-    /**
-     * Тест сохранения нового пользователя.
-     * Проверяет, что ID генерируется автоматически.
-     */
+    @AfterAll
+    static void tearDown() {
+        // Testcontainers автоматически остановит контейнер
+    }
+
     @Test
     @Order(1)
     void testSaveUser() {
@@ -58,10 +88,6 @@ public class UserDAOTest {
         testUser.setId(saved.getId());
     }
 
-    /**
-     * Тест поиска пользователя по ID.
-     * Проверяет, что найденный пользователь соответствует сохраненному.
-     */
     @Test
     @Order(2)
     void testFindById() {
@@ -70,10 +96,6 @@ public class UserDAOTest {
         assertEquals(testUser.getEmail(), found.get().getEmail());
     }
 
-    /**
-     * Тест поиска пользователя по email.
-     * Проверяет уникальность email и корректность поиска.
-     */
     @Test
     @Order(3)
     void testFindByEmail() {
@@ -82,21 +104,14 @@ public class UserDAOTest {
         assertEquals(testUser.getId(), found.get().getId());
     }
 
-    /**
-     * Тест получения всех пользователей.
-     * Проверяет, что список не пустой (содержит тестового пользователя).
-     */
     @Test
     @Order(4)
     void testFindAll() {
         List<User> users = userDAO.findAll();
         assertFalse(users.isEmpty());
+        assertTrue(users.stream().anyMatch(u -> u.getEmail().equals(testUser.getEmail())));
     }
 
-    /**
-     * Тест обновления данных пользователя.
-     * Проверяет, что изменения сохраняются в базе данных.
-     */
     @Test
     @Order(5)
     void testUpdateUser() {
@@ -108,21 +123,15 @@ public class UserDAOTest {
         assertEquals("Updated Name", found.get().getName());
     }
 
-    /**
-     * Тест проверки существования пользователя по email.
-     * Проверяет, что метод корректно определяет наличие пользователя.
-     */
     @Test
     @Order(6)
     void testExistsByEmail() {
         boolean exists = userDAO.existsByEmail(testUser.getEmail());
         assertTrue(exists);
+        boolean notExists = userDAO.existsByEmail("nonexistent@example.com");
+        assertFalse(notExists);
     }
 
-    /**
-     * Тест удаления пользователя.
-     * Проверяет, что после удаления пользователь больше не находится в БД.
-     */
     @Test
     @Order(7)
     void testDeleteUser() {
