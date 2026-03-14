@@ -9,6 +9,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Тесты для проверки маппинга между Entity и DTO.
+ * Проверяет, что технические поля не попадают в DTO.
+ */
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDTOMappingTest extends AbstractDatabaseTest {
 
@@ -21,7 +26,7 @@ public class UserDTOMappingTest extends AbstractDatabaseTest {
 
     @BeforeEach
     void cleanAndSetup() {
-        clearTables();  // Очищаем таблицу перед каждым тестом
+        clearTables();
     }
 
     private UserDTO convertToDto(User user) {

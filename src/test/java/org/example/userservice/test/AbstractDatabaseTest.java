@@ -8,6 +8,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+/**
+ * Базовый класс для тестов с БД.
+ * Содержит общий контейнер PostgreSQL для всех тестов.
+ */
 @Testcontainers
 public abstract class AbstractDatabaseTest {
 
@@ -15,7 +19,6 @@ public abstract class AbstractDatabaseTest {
             .parse("postgres:15-alpine")
             .asCompatibleSubstituteFor("postgres");
 
-    // ОДИН контейнер для ВСЕХ тестов
     private static PostgreSQLContainer<?> postgres;
 
     @BeforeAll
@@ -38,7 +41,6 @@ public abstract class AbstractDatabaseTest {
 
     @AfterAll
     static void cleanupDatabase() {
-        // Не закрываем контейнер здесь!
         System.out.println("All tests finished. Container will be stopped by JVM.");
     }
 

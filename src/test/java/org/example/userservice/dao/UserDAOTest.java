@@ -10,6 +10,10 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Тесты для UserDAO.
+ * Проверяет все CRUD операции с базой данных.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTest extends AbstractDatabaseTest {
 
@@ -22,7 +26,7 @@ public class UserDAOTest extends AbstractDatabaseTest {
 
     @BeforeEach
     void cleanBeforeTest() {
-        clearTables();  // Очищаем таблицу перед каждым тестом
+        clearTables();
     }
 
     @Test
