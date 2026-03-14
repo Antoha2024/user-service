@@ -3,6 +3,7 @@ package org.example.userservice.test;
 import org.example.userservice.util.HibernateUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -14,6 +15,7 @@ import org.testcontainers.utility.DockerImageName;
  * для всех тестовых классов-наследников.
  */
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)  // Важно!
 public abstract class AbstractDatabaseTest {
 
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName
