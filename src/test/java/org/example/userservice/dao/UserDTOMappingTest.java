@@ -16,10 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Тесты для проверки маппинга между Entity и DTO.
  * Использует Testcontainers для автоматического управления тестовой БД.
- * Каждый тест создает свои собственные данные.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Testcontainers
+@Testcontainers  // ← ЭТО ВАЖНО!
 public class UserDTOMappingTest {
     private static UserDAO userDAO;
 
@@ -27,7 +26,7 @@ public class UserDTOMappingTest {
             .parse("postgres:15-alpine")
             .asCompatibleSubstituteFor("postgres");
 
-    @Container
+    @Container  // ← ЭТО ВАЖНО!
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
             .withDatabaseName("testdb")
             .withUsername("test")
@@ -43,9 +42,6 @@ public class UserDTOMappingTest {
         userDAO = new UserDAOImpl();
     }
 
-    /**
-     * Очистка таблицы перед каждым тестом для изоляции.
-     */
     @BeforeEach
     void cleanAndSetup() {
         HibernateUtil.doInTransaction(session -> {
@@ -58,9 +54,68 @@ public class UserDTOMappingTest {
         // Testcontainers автоматически остановит контейнер
     }
 
-    /**
-     * Вспомогательный метод для конвертации User в UserDTO.
-     */
+    @Test
+    @Order(1)
+    void testUserDtoDoesNotContainTechnicalFields() {
+        User user = new User("DTO Technical Fields Test", "dto.technical@example.com", 30);
+        User savedUser = userDAO.save(user);
+        assertNotNull(savedUser.getId());
+
+        Optional<User> found = userDAO.findById(savedUser.getId());
+        assertTrue(found.isPresent());
+
+        UserDTO dto = convertToDto(found.get());
+
+        assertAll("Бизнес-поля должны маппиться корректно",
+                () -> assertEquals("DTO Technical Fields Test", dto.getName()),
+                () -> assertEquals("dto.technical@example.com", dto.getEmail()),
+                () -> assertEquals(30, dto.getAge())
+        );
+
+        assertNotNull(dto.getId());
+
+        assertAll("Технические поля не должны быть в DTO",
+                () -> assertFalse(hasField(UserDTO.class, "createdAt")),
+                () -> assertFalse(hasField(UserDTO.class, "updatedAt")),
+                () -> assertFalse(hasField(UserDTO.class, "version"))
+        );
+    }
+
+    @Test
+    @Order(2)
+    void testIdIsGeneratedByDatabase() {
+        User user = new User("ID Generation Test", "id.gen@example.com", 25);
+        User saved = userDAO.save(user);
+
+        assertNotNull(saved.getId());
+        assertTrue(saved.getId() > 0);
+
+        UserDTO dto = convertToDto(saved);
+        assertNotNull(dto.getId());
+        assertEquals(saved.getId(), dto.getId());
+    }
+
+    @Test
+    @Order(3)
+    void testUpdateUserAndCheckDto() {
+        User user = new User("Update DTO Test", "dto.update@example.com", 28);
+        User savedUser = userDAO.save(user);
+
+        savedUser.setName("Updated DTO Name");
+        savedUser.setAge(29);
+        userDAO.update(savedUser);
+
+        Optional<User> found = userDAO.findById(savedUser.getId());
+        assertTrue(found.isPresent());
+
+        UserDTO dto = convertToDto(found.get());
+
+        assertEquals("Updated DTO Name", dto.getName());
+        assertEquals("dto.update@example.com", dto.getEmail());
+        assertEquals(29, dto.getAge());
+        assertNotNull(dto.getId());
+    }
+
     private UserDTO convertToDto(User user) {
         if (user == null) return null;
         UserDTO dto = new UserDTO();
@@ -71,9 +126,6 @@ public class UserDTOMappingTest {
         return dto;
     }
 
-    /**
-     * Вспомогательный метод для проверки наличия поля в классе.
-     */
     private boolean hasField(Class<?> clazz, String fieldName) {
         try {
             clazz.getDeclaredField(fieldName);
@@ -81,89 +133,5 @@ public class UserDTOMappingTest {
         } catch (NoSuchFieldException e) {
             return false;
         }
-    }
-
-    /**
-     * Тест сохранения и получения пользователя через DTO.
-     * Проверяет, что технические поля (кроме ID) не просачиваются в DTO.
-     */
-    @Test
-    @Order(1)
-    void testUserDtoDoesNotContainTechnicalFields() {
-        // given
-        User user = new User("DTO Technical Fields Test", "dto.technical@example.com", 30);
-
-        // when
-        User savedUser = userDAO.save(user);
-        assertNotNull(savedUser.getId());
-
-        Optional<User> found = userDAO.findById(savedUser.getId());
-        assertTrue(found.isPresent());
-
-        UserDTO dto = convertToDto(found.get());
-
-        // then - проверяем бизнес-поля
-        assertAll("Бизнес-поля должны маппиться корректно",
-                () -> assertEquals("DTO Technical Fields Test", dto.getName()),
-                () -> assertEquals("dto.technical@example.com", dto.getEmail()),
-                () -> assertEquals(30, dto.getAge())
-        );
-
-        assertNotNull(dto.getId());
-
-        // then - проверяем, что технических полей нет в DTO
-        assertAll("Технические поля не должны быть в DTO",
-                () -> assertFalse(hasField(UserDTO.class, "createdAt")),
-                () -> assertFalse(hasField(UserDTO.class, "updatedAt")),
-                () -> assertFalse(hasField(UserDTO.class, "version"))
-        );
-    }
-
-    /**
-     * Тест проверки, что ID генерируется БД.
-     */
-    @Test
-    @Order(2)
-    void testIdIsGeneratedByDatabase() {
-        // given
-        User user = new User("ID Generation Test", "id.gen@example.com", 25);
-
-        // when
-        User saved = userDAO.save(user);
-
-        // then
-        assertNotNull(saved.getId());
-        assertTrue(saved.getId() > 0);
-
-        UserDTO dto = convertToDto(saved);
-        assertNotNull(dto.getId());
-        assertEquals(saved.getId(), dto.getId());
-    }
-
-    /**
-     * Тест обновления пользователя и проверка через DTO.
-     */
-    @Test
-    @Order(3)
-    void testUpdateUserAndCheckDto() {
-        // given
-        User user = new User("Update DTO Test", "dto.update@example.com", 28);
-        User savedUser = userDAO.save(user);
-
-        // when
-        savedUser.setName("Updated DTO Name");
-        savedUser.setAge(29);
-        userDAO.update(savedUser);
-
-        // then
-        Optional<User> found = userDAO.findById(savedUser.getId());
-        assertTrue(found.isPresent());
-
-        UserDTO dto = convertToDto(found.get());
-
-        assertEquals("Updated DTO Name", dto.getName());
-        assertEquals("dto.update@example.com", dto.getEmail());
-        assertEquals(29, dto.getAge());
-        assertNotNull(dto.getId());
     }
 }
