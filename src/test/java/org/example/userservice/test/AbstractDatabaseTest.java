@@ -3,39 +3,31 @@ package org.example.userservice.test;
 import org.example.userservice.util.HibernateUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * Абстрактный базовый класс для всех тестов, требующих реальной базы данных.
- * Содержит общий контейнер PostgreSQL, который запускается один раз
- * для всех тестовых классов-наследников.
- */
 @Testcontainers
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)  // Важно!
 public abstract class AbstractDatabaseTest {
 
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName
             .parse("postgres:15-alpine")
             .asCompatibleSubstituteFor("postgres");
 
-    @Container
-    protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+    // ОДИН контейнер для ВСЕХ тестов
+    private static PostgreSQLContainer<?> postgres;
 
     @BeforeAll
     static void setupDatabase() {
-        // Убеждаемся, что контейнер запущен
-        if (!postgres.isRunning()) {
+        if (postgres == null) {
+            postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
+                    .withDatabaseName("testdb")
+                    .withUsername("test")
+                    .withPassword("test");
             postgres.start();
         }
 
-        // Перенаправляем Hibernate на контейнер Testcontainers
         System.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
         System.setProperty("hibernate.connection.username", postgres.getUsername());
         System.setProperty("hibernate.connection.password", postgres.getPassword());
@@ -46,13 +38,10 @@ public abstract class AbstractDatabaseTest {
 
     @AfterAll
     static void cleanupDatabase() {
-        System.out.println("All tests finished. Container will be stopped by Testcontainers.");
+        // Не закрываем контейнер здесь!
+        System.out.println("All tests finished. Container will be stopped by JVM.");
     }
 
-    /**
-     * Вспомогательный метод для очистки таблиц между тестами.
-     * Каждый тестовый класс может вызывать его в @BeforeEach.
-     */
     protected void clearTables() {
         HibernateUtil.doInTransaction(session -> {
             session.createQuery("DELETE FROM User").executeUpdate();
