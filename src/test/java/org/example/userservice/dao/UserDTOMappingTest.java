@@ -13,12 +13,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Тесты для проверки маппинга между Entity и DTO.
- * Использует Testcontainers для автоматического управления тестовой БД.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Testcontainers  // ← ЭТО ВАЖНО!
+@Testcontainers
 public class UserDTOMappingTest {
     private static UserDAO userDAO;
 
@@ -26,7 +22,8 @@ public class UserDTOMappingTest {
             .parse("postgres:15-alpine")
             .asCompatibleSubstituteFor("postgres");
 
-    @Container  // ← ЭТО ВАЖНО!
+    // ВОТ ЭТА АННОТАЦИЯ БЫЛА ПРОПУЩЕНА!
+    @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE)
             .withDatabaseName("testdb")
             .withUsername("test")
