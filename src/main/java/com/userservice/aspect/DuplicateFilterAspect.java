@@ -23,24 +23,16 @@ public class DuplicateFilterAspect {
         this.userRepository = userRepository;
     }
     
-    @Pointcut("@annotation(com.userservice.annotation.FilterDuplicates)")
-    public void filterDuplicatesPointcut() {}
+    @Pointcut("execution(* com.userservice.service.UserService.createUser(..)) && args(userRequest)")
+    public void createUserPointcut(UserRequestDTO userRequest) {}
     
-    @Around("filterDuplicatesPointcut() && args(users,..)")
-    public Object filterDuplicateUsers(ProceedingJoinPoint joinPoint, List<UserRequestDTO> users) throws Throwable {
-        // Фильтрует дубликаты пользователей перед сохранением
-        if (users == null || users.isEmpty()) {
-            return joinPoint.proceed();
+    @Around(value = "createUserPointcut(userRequest)", argNames = "joinPoint,userRequest")
+    public Object filterDuplicateUser(ProceedingJoinPoint joinPoint, UserRequestDTO userRequest) throws Throwable {
+        // Проверяем, существует ли пользователь с таким email
+        if (userRequest != null && userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new RuntimeException("User with email " + userRequest.getEmail() + " already exists");
         }
         
-        List<UserRequestDTO> uniqueUsers = users.stream()
-                .filter(user -> !userRepository.existsByEmail(user.getEmail()))
-                .collect(Collectors.toList());
-        
-        Object[] args = Arrays.stream(joinPoint.getArgs())
-                .map(arg -> arg instanceof List ? uniqueUsers : arg)
-                .toArray();
-        
-        return joinPoint.proceed(args);
+        return joinPoint.proceed();
     }
 }
