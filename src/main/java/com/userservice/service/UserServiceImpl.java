@@ -22,6 +22,9 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
     
+    /**
+     * Получение всех пользователей (транзакция чтения)
+     */
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
@@ -30,20 +33,28 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
     
+    /**
+     * Поиск пользователя по ID (транзакция чтения)
+     */
     @Override
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserById(Long id) {
         return userRepository.findById(id)
                 .map(this::convertToDTO);
     }
-    
+
+    /**
+     * Поиск пользователя по email (транзакция чтения)
+     */
     @Override
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(this::convertToDTO);
     }
-    
+    /**
+     * Создание нового пользователя с проверкой на дубликат email
+     */
     @Override
     public UserResponseDTO createUser(UserRequestDTO userRequest) {
         if (userRepository.existsByEmail(userRequest.getEmail())) {
@@ -54,7 +65,10 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
     }
-    
+
+    /**
+     * Обновление пользователя с проверкой email
+     */
     @Override
     public Optional<UserResponseDTO> updateUser(Long id, UserRequestDTO userRequest) {
         return userRepository.findById(id)
@@ -74,6 +88,9 @@ public class UserServiceImpl implements UserService {
                 });
     }
     
+    /**
+     * Удаление пользователя
+     */
     @Override
     public boolean deleteUser(Long id) {
         if (userRepository.existsById(id)) {
@@ -83,6 +100,9 @@ public class UserServiceImpl implements UserService {
         return false;
     }
     
+    /**
+     * Поиск и удаление дубликатов по email
+     */
     @Override
     @Transactional
     public int removeDuplicateUsers() {
@@ -104,6 +124,9 @@ public class UserServiceImpl implements UserService {
         return 0;
     }
     
+    /**
+     * Конвертер Entity -> DTO
+     */
     private UserResponseDTO convertToDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
@@ -116,6 +139,9 @@ public class UserServiceImpl implements UserService {
         return dto;
     }
     
+    /**
+     * Конвертер Entity -> DTO
+     */
     private User convertToEntity(UserRequestDTO dto) {
         User user = new User();
         user.setEmail(dto.getEmail());

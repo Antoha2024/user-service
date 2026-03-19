@@ -11,15 +11,30 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     
+    /**
+     * Поиск пользователя по email
+    */
     Optional<User> findByEmail(String email);
     
+    /**
+     * Проверка существования email
+     */
     boolean existsByEmail(String email);
     
+    /**
+     * Поиск по фамилии
+     */
     List<User> findByLastName(String lastName);
     
+    /**
+     * Поиск по возрастному диапазону
+     */
     @Query("SELECT u FROM User u WHERE u.age BETWEEN :minAge AND :maxAge")
     List<User> findByAgeRange(@Param("minAge") Integer minAge, @Param("maxAge") Integer maxAge);
     
+    /**
+     * Массовое удаление по списку ID
+     */
     @Transactional
     @Modifying
     @Query("DELETE FROM User u WHERE u.id IN :ids")

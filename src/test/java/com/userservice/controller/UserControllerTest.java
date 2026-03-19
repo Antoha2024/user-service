@@ -29,6 +29,21 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Интеграционные тесты для UserController с использованием MockMvc.
+ * 
+ * Тестирует все REST эндпоинты контроллера:
+ * - GET /api/users - получение всех пользователей
+ * - GET /api/users/{id} - получение пользователя по ID
+ * - GET /api/users/email/{email} - получение по email
+ * - POST /api/users - создание пользователя
+ * - PUT /api/users/{id} - обновление пользователя
+ * - DELETE /api/users/{id} - удаление пользователя
+ * - POST /api/users/remove-duplicates - удаление дубликатов
+ * 
+ * Использует @MockBean для мокирования UserService
+ * и Testcontainers для реальной PostgreSQL базы данных.
+ */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {AppConfig.class, TestConfig.class})
 @WebAppConfiguration

@@ -20,26 +20,38 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-    
+
+    /**
+     * GET /api/users - получение всех пользователей
+     */
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
-    
+
+    /**
+     * GET /api/users/{id} - получение пользователя по ID
+     */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable("id") Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
+    /**
+     * GET /api/users/email/{email} - получение по email
+     */
     @GetMapping("/email/{email}")
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable("email") String email) {
         return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
+    /**
+     * POST /api/users - создание нового пользователя
+     */
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequest) {
         try {
@@ -49,7 +61,10 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
+    /**
+     * PUT /api/users/{id} - обновление пользователя
+     */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable("id") Long id, 
                                                       @Valid @RequestBody UserRequestDTO userRequest) {
@@ -57,7 +72,10 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
+    /*
+     * DELETE /api/users/{id} - удаление пользователя
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         if (userService.deleteUser(id)) {
@@ -65,7 +83,9 @@ public class UserController {
         }
         return ResponseEntity.notFound().build();
     }
-    
+    /*
+     * POST /api/users/remove-duplicates - удаление дубликатов
+     */
     @PostMapping("/remove-duplicates")
     public ResponseEntity<String> removeDuplicateUsers() {
         int deletedCount = userService.removeDuplicateUsers();

@@ -9,6 +9,16 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Аспект для фильтрации дубликатов пользователей при создании.
+ * 
+ * Перехватывает вызовы метода createUser и проверяет, 
+ * существует ли пользователь с указанным email в базе данных.
+ * Если дубликат найден, выбрасывается исключение.
+ * 
+ * Использует @Around advice для выполнения проверки до вызова целевого метода.
+ */
+
 @Aspect
 @Component
 public class DuplicateFilterAspect {
