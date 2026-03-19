@@ -129,7 +129,6 @@ public class UserControllerTest {
         UserRequestDTO request = new UserRequestDTO();
         request.setEmail("invalid-email");
         request.setFirstName("");
-        // lastName is null - это вызовет ошибку валидации
         
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)

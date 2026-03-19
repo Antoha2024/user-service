@@ -27,14 +27,14 @@ public class UserController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable("id") Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable("email") String email) {
         return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -51,7 +51,7 @@ public class UserController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, 
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable("id") Long id, 
                                                       @Valid @RequestBody UserRequestDTO userRequest) {
         return userService.updateUser(id, userRequest)
                 .map(ResponseEntity::ok)
@@ -59,7 +59,7 @@ public class UserController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         if (userService.deleteUser(id)) {
             return ResponseEntity.noContent().build();
         }
@@ -68,7 +68,6 @@ public class UserController {
     
     @PostMapping("/remove-duplicates")
     public ResponseEntity<String> removeDuplicateUsers() {
-        // Эндпоинт для удаления дубликатов пользователей
         int deletedCount = userService.removeDuplicateUsers();
         return ResponseEntity.ok("Removed " + deletedCount + " duplicate users");
     }
