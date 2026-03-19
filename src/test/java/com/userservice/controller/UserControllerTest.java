@@ -2,20 +2,25 @@ package com.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.userservice.config.AppConfig;
+import com.userservice.config.TestConfig;
 import com.userservice.dto.UserRequestDTO;
 import com.userservice.dto.UserResponseDTO;
 import com.userservice.service.UserService;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -27,9 +32,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {AppConfig.class})
+@ContextConfiguration(classes = {AppConfig.class, TestConfig.class})
 @WebAppConfiguration
+@ActiveProfiles("test")
 public class UserControllerTest {
+    
+    @ClassRule
+    public static PostgreSQLContainer<?> postgresContainer = 
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:15"))
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
     
     @Autowired
     private WebApplicationContext webApplicationContext;
