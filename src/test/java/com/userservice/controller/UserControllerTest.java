@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -37,7 +38,7 @@ public class UserControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
     
-    @Autowired
+    @MockBean
     private UserService userService;
     
     private MockMvc mockMvc;
@@ -128,6 +129,7 @@ public class UserControllerTest {
         UserRequestDTO request = new UserRequestDTO();
         request.setEmail("invalid-email");
         request.setFirstName("");
+        // lastName is null - это вызовет ошибку валидации
         
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -165,6 +167,7 @@ public class UserControllerTest {
         request.setEmail("test@example.com");
         request.setFirstName("Test");
         request.setLastName("User");
+        request.setAge(30);
         
         when(userService.updateUser(eq(999L), any(UserRequestDTO.class))).thenReturn(Optional.empty());
         
