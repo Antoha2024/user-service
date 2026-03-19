@@ -1,4 +1,4 @@
-package org.example.userservice.controller; --> package com.userservice.controller;
+package com.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.userservice.config.AppConfig;
