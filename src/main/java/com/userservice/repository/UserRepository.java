@@ -33,10 +33,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByAgeRange(@Param("minAge") Integer minAge, @Param("maxAge") Integer maxAge);
     
     /**
-     * Массовое удаление по списку ID
+     * Удаление дубликатов по email с проверкой
+     * Удаляет только тех пользователей, у которых email соответствует указанному,
+     * а ID входит в переданный список. Это обеспечивает безопасность удаления —
+     * даже если в списке ID окажется посторонний ID, он не будет удалён,
+     * так как не соответствует указанному email.
      */
+    
     @Transactional
     @Modifying
-    @Query("DELETE FROM User u WHERE u.id IN :ids")
-    int deleteUsersByIds(@Param("ids") List<Long> ids);
+    @Query("DELETE FROM User u WHERE u.email = :email AND u.id IN :ids")
+    int deleteDuplicatesByEmail(@Param("email") String email, @Param("ids") List<Long> ids);
 }

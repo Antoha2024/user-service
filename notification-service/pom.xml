@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>user-service</artifactId>
+    <artifactId>notification-service</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
@@ -15,7 +15,6 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>6.1.14</spring.version>
-        <hibernate.version>6.3.1.Final</hibernate.version>
         <jackson.version>2.17.2</jackson.version>
     </properties>
 
@@ -34,27 +33,6 @@
             <version>${spring.version}</version>
         </dependency>
 
-        <!-- Spring Data JPA -->
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-            <version>3.3.4</version>
-        </dependency>
-
-        <!-- Spring Transactions -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <!-- Spring ORM -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
         <!-- Spring Kafka -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
@@ -67,27 +45,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
             <version>3.3.4</version>
-        </dependency>
-
-        <!-- Hibernate Core -->
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-
-        <!-- Hibernate Validator -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>8.0.1.Final</version>
-        </dependency>
-
-        <!-- PostgreSQL Driver -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.4</version>
         </dependency>
 
         <!-- Jackson for JSON -->
@@ -103,34 +60,6 @@
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.1.0</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- AspectJ for AOP -->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>1.9.22.1</version>
-        </dependency>
-
-        <!-- Validation API -->
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-
-        <!-- Jakarta Persistence -->
-        <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-
-        <!-- Jakarta EL (для валидации) -->
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>jakarta.el</artifactId>
-            <version>4.0.2</version>
         </dependency>
 
         <!-- Logging -->
@@ -153,15 +82,20 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- Spring Boot Test для @MockBean -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-test</artifactId>
-            <version>3.3.4</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         
-        <!-- Spring Kafka Test -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.14.2</version>
+            <scope>test</scope>
+        </dependency>
+        
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
@@ -170,57 +104,24 @@
         </dependency>
         
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>5.14.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.14.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.9.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>1.19.8</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>1.19.8</version>
-            <scope>test</scope>
-        </dependency>
+        
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
             <version>1.19.8</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- GreenMail для тестирования email -->
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
+            <version>2.0.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -249,14 +150,13 @@
                 </configuration>
             </plugin>
             
-            <!-- Tomcat Maven Plugin (вместо Jetty) -->
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <path>/user-service</path>
-                    <port>8080</port>
+                    <path>/notification-service</path>
+                    <port>8081</port>
                     <uriEncoding>UTF-8</uriEncoding>
                 </configuration>
             </plugin>

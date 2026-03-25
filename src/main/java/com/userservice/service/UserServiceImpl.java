@@ -1,5 +1,6 @@
 package com.userservice.service;
 
+import com.userservice.dto.UserEventDTO;
 import com.userservice.dto.UserRequestDTO;
 import com.userservice.dto.UserResponseDTO;
 import com.userservice.entity.User;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,10 +18,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     
     private final UserRepository userRepository;
+    private final KafkaEventProducerService kafkaProducer;
     
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, KafkaEventProducerService kafkaProducer) {
         this.userRepository = userRepository;
+        this.kafkaProducer = kafkaProducer;
     }
     
     /**
@@ -52,8 +56,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email)
                 .map(this::convertToDTO);
     }
+    
     /**
      * Создание нового пользователя с проверкой на дубликат email
+     * После успешного создания отправляет событие в Kafka
      */
     @Override
     public UserResponseDTO createUser(UserRequestDTO userRequest) {
@@ -63,7 +69,12 @@ public class UserServiceImpl implements UserService {
         
         User user = convertToEntity(userRequest);
         User savedUser = userRepository.save(user);
-        return convertToDTO(savedUser);
+        UserResponseDTO response = convertToDTO(savedUser);
+        
+        // Отправка события в Kafka о создании пользователя
+        kafkaProducer.sendUserEvent(UserEventDTO.OperationType.CREATE, savedUser.getEmail());
+        
+        return response;
     }
 
     /**
@@ -90,38 +101,64 @@ public class UserServiceImpl implements UserService {
     
     /**
      * Удаление пользователя
+     * После успешного удаления отправляет событие в Kafka
      */
     @Override
     public boolean deleteUser(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return userRepository.findById(id)
+                .map(user -> {
+                    String email = user.getEmail();
+                    userRepository.deleteById(id);
+                    // Отправка события в Kafka об удалении пользователя
+                    kafkaProducer.sendUserEvent(UserEventDTO.OperationType.DELETE, email);
+                    return true;
+                })
+                .orElse(false);
     }
     
     /**
-     * Поиск и удаление дубликатов по email
+     * Поиск и удаление дубликатов по email.
+     * 
+     * Алгоритм работы:
+     * 1. Загружаем всех пользователей из БД
+     * 2. Группируем их по email для выявления дубликатов
+     * 3. Для каждой группы дубликатов (где количество > 1):
+     *    - Определяем список ID "лишних" пользователей (пропускаем первого)
+     *    - Удаляем их с проверкой: DELETE WHERE email = :email AND id IN (:ids)
+     * 
+     * Такой подход гарантирует, что даже если в списке ID окажется посторонний ID
+     * (например, из-за бага в логике формирования списка), он не будет удалён,
+     * так как не соответствует указанному email группы дубликатов.
+     * 
+     * @return количество удалённых пользователей-дубликатов
      */
     @Override
     @Transactional
     public int removeDuplicateUsers() {
         List<User> allUsers = userRepository.findAll();
         
-        var duplicates = allUsers.stream()
-                .collect(Collectors.groupingBy(User::getEmail))
-                .entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1)
-                .flatMap(entry -> entry.getValue().stream()
-                        .skip(1)
-                        .map(User::getId))
-                .collect(Collectors.toList());
+        Map<String, List<User>> usersByEmail = allUsers.stream()
+                .collect(Collectors.groupingBy(User::getEmail));
         
-        if (!duplicates.isEmpty()) {
-            return userRepository.deleteUsersByIds(duplicates);
+        int totalDeleted = 0;
+        
+        for (Map.Entry<String, List<User>> entry : usersByEmail.entrySet()) {
+            List<User> users = entry.getValue();
+            
+            if (users.size() > 1) {
+                List<Long> idsToDelete = users.stream()
+                        .skip(1)
+                        .map(User::getId)
+                        .collect(Collectors.toList());
+                
+                totalDeleted += userRepository.deleteDuplicatesByEmail(
+                        entry.getKey(),
+                        idsToDelete
+                );
+            }
         }
         
-        return 0;
+        return totalDeleted;
     }
     
     /**
@@ -140,7 +177,7 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * Конвертер Entity -> DTO
+     * Конвертер DTO -> Entity
      */
     private User convertToEntity(UserRequestDTO dto) {
         User user = new User();

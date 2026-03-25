@@ -24,10 +24,10 @@ import java.util.Properties;
 @EnableAspectJAutoProxy
 @EnableJpaRepositories(basePackages = "com.userservice.repository")
 @ComponentScan(basePackages = "com.userservice")
-@PropertySource("classpath:application.properties")  // Загружаем properties файл
+@PropertySource("classpath:application.properties")
 public class AppConfig {
     
-    private final Environment env;  // Для доступа к свойствам
+    private final Environment env;
     
     public AppConfig(Environment env) {
         this.env = env;
