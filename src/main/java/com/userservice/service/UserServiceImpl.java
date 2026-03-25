@@ -26,9 +26,6 @@ public class UserServiceImpl implements UserService {
         this.kafkaProducer = kafkaProducer;
     }
     
-    /**
-     * Получение всех пользователей (транзакция чтения)
-     */
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
@@ -37,9 +34,6 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Поиск пользователя по ID (транзакция чтения)
-     */
     @Override
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserById(Long id) {
@@ -47,9 +41,6 @@ public class UserServiceImpl implements UserService {
                 .map(this::convertToDTO);
     }
 
-    /**
-     * Поиск пользователя по email (транзакция чтения)
-     */
     @Override
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserByEmail(String email) {
@@ -57,10 +48,6 @@ public class UserServiceImpl implements UserService {
                 .map(this::convertToDTO);
     }
     
-    /**
-     * Создание нового пользователя с проверкой на дубликат email
-     * После успешного создания отправляет событие в Kafka
-     */
     @Override
     public UserResponseDTO createUser(UserRequestDTO userRequest) {
         if (userRepository.existsByEmail(userRequest.getEmail())) {
@@ -71,15 +58,11 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         UserResponseDTO response = convertToDTO(savedUser);
         
-        // Отправка события в Kafka о создании пользователя
         kafkaProducer.sendUserEvent(UserEventDTO.OperationType.CREATE, savedUser.getEmail());
         
         return response;
     }
 
-    /**
-     * Обновление пользователя с проверкой email
-     */
     @Override
     public Optional<UserResponseDTO> updateUser(Long id, UserRequestDTO userRequest) {
         return userRepository.findById(id)
@@ -99,39 +82,18 @@ public class UserServiceImpl implements UserService {
                 });
     }
     
-    /**
-     * Удаление пользователя
-     * После успешного удаления отправляет событие в Kafka
-     */
     @Override
     public boolean deleteUser(Long id) {
         return userRepository.findById(id)
                 .map(user -> {
                     String email = user.getEmail();
                     userRepository.deleteById(id);
-                    // Отправка события в Kafka об удалении пользователя
                     kafkaProducer.sendUserEvent(UserEventDTO.OperationType.DELETE, email);
                     return true;
                 })
                 .orElse(false);
     }
     
-    /**
-     * Поиск и удаление дубликатов по email.
-     * 
-     * Алгоритм работы:
-     * 1. Загружаем всех пользователей из БД
-     * 2. Группируем их по email для выявления дубликатов
-     * 3. Для каждой группы дубликатов (где количество > 1):
-     *    - Определяем список ID "лишних" пользователей (пропускаем первого)
-     *    - Удаляем их с проверкой: DELETE WHERE email = :email AND id IN (:ids)
-     * 
-     * Такой подход гарантирует, что даже если в списке ID окажется посторонний ID
-     * (например, из-за бага в логике формирования списка), он не будет удалён,
-     * так как не соответствует указанному email группы дубликатов.
-     * 
-     * @return количество удалённых пользователей-дубликатов
-     */
     @Override
     @Transactional
     public int removeDuplicateUsers() {
@@ -161,9 +123,6 @@ public class UserServiceImpl implements UserService {
         return totalDeleted;
     }
     
-    /**
-     * Конвертер Entity -> DTO
-     */
     private UserResponseDTO convertToDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
@@ -176,9 +135,6 @@ public class UserServiceImpl implements UserService {
         return dto;
     }
     
-    /**
-     * Конвертер DTO -> Entity
-     */
     private User convertToEntity(UserRequestDTO dto) {
         User user = new User();
         user.setEmail(dto.getEmail());

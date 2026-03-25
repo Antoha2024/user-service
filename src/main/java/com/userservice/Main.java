@@ -1,6 +1,6 @@
-package com.notificationservice;
+package com.userservice;
 
-import com.notificationservice.config.AppConfig;
+import com.userservice.config.AppConfig;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
