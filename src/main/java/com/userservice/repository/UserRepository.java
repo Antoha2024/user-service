@@ -10,34 +10,41 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    
+
     /**
      * Поиск пользователя по email
-    */
+     */
     Optional<User> findByEmail(String email);
-    
+
     /**
      * Проверка существования email
      */
     boolean existsByEmail(String email);
-    
+
     /**
      * Поиск по фамилии
      */
     List<User> findByLastName(String lastName);
-    
+
     /**
      * Поиск по возрастному диапазону
      */
     @Query("SELECT u FROM User u WHERE u.age BETWEEN :minAge AND :maxAge")
     List<User> findByAgeRange(@Param("minAge") Integer minAge, @Param("maxAge") Integer maxAge);
-    
+
     /**
      * Удаление дубликатов по email с проверкой
      * Удаляет только тех пользователей, у которых email соответствует указанному,
      * а ID входит в переданный список. Это обеспечивает безопасность удаления —
      * даже если в списке ID окажется посторонний ID, он не будет удалён,
      * так как не соответствует указанному email.
+<<<<<<< HEAD
+=======
+     *
+     * @param email email пользователя (группа дубликатов)
+     * @param ids список ID, которые нужно удалить из этой группы
+     * @return количество удалённых записей
+>>>>>>> 30bd309866d4e8236e0ded37bcd424e6d9ac92a7
      */
     
     @Transactional
